@@ -1,0 +1,39 @@
+2025/06/10-13:21:35.425 bac9 Reusing MANIFEST /workspaces/WHAT_BOT/tokens/bot-session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/06/10-13:21:35.426 bac9 Recovering log #575
+2025/06/10-13:21:35.447 bac9 Reusing old log /workspaces/WHAT_BOT/tokens/bot-session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/000575.log 
+2025/06/10-13:21:37.096 bacd Level-0 table #585: started
+2025/06/10-13:21:37.125 bacd Level-0 table #585: 464297 bytes OK
+2025/06/10-13:21:37.127 bacd Delete type=0 #575
+2025/06/10-13:21:37.129 bac9 Manual compaction at level-0 from '\x00@\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00A\x00\x00\x00' @ 0 : 0; will stop at '\x00@\x00\x00\x05' @ 2266025 : 1
+2025/06/10-13:21:37.129 bac9 Compacting 1@0 + 1@1 files
+2025/06/10-13:21:37.149 bac9 Generated table #586@0: 8988 keys, 225061 bytes
+2025/06/10-13:21:37.151 bac9 Generated table #587@0: 72 keys, 1547 bytes
+2025/06/10-13:21:37.151 bac9 Compacted 1@0 + 1@1 files => 226608 bytes
+2025/06/10-13:21:37.154 bac9 compacted to: files[ 0 2 12 0 0 0 0 ]
+2025/06/10-13:21:37.154 bac9 Delete type=2 #585
+2025/06/10-13:21:37.154 bacd Manual compaction at level-0 from '\x00@\x00\x00\x05' @ 2266025 : 1 .. '\x00A\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/10-13:21:38.729 bacd Compacting 1@1 + 10@2 files
+2025/06/10-13:21:38.834 bacd Generated table #588@1: 46707 keys, 2225403 bytes
+2025/06/10-13:21:38.966 bacd Generated table #589@1: 33575 keys, 2197832 bytes
+2025/06/10-13:21:39.017 bacd Generated table #590@1: 1966 keys, 2139622 bytes
+2025/06/10-13:21:39.096 bacd Generated table #591@1: 3359 keys, 2157117 bytes
+2025/06/10-13:21:39.201 bacd Generated table #592@1: 24609 keys, 2226582 bytes
+2025/06/10-13:21:39.266 bacd Generated table #593@1: 30707 keys, 2230634 bytes
+2025/06/10-13:21:39.304 bacd Generated table #594@1: 3337 keys, 2121789 bytes
+2025/06/10-13:21:39.390 bacd Generated table #595@1: 88456 keys, 2235748 bytes
+2025/06/10-13:21:39.510 bacd Generated table #596@1: 105813 keys, 2256305 bytes
+2025/06/10-13:21:39.611 bacd Generated table #597@1: 105413 keys, 2244137 bytes
+2025/06/10-13:21:39.611 bacd Compacted 1@1 + 10@2 files => 22035169 bytes
+2025/06/10-13:21:39.613 bacd compacted to: files[ 0 1 12 0 0 0 0 ]
+2025/06/10-13:21:39.614 bacd Delete type=2 #580
+2025/06/10-13:21:39.614 bacd Delete type=2 #578
+2025/06/10-13:21:39.614 bacd Delete type=2 #581
+2025/06/10-13:21:39.614 bacd Delete type=2 #561
+2025/06/10-13:21:39.614 bacd Delete type=2 #562
+2025/06/10-13:21:39.614 bacd Delete type=2 #577
+2025/06/10-13:21:39.614 bacd Delete type=2 #586
+2025/06/10-13:21:39.614 bacd Delete type=2 #560
+2025/06/10-13:21:39.614 bacd Delete type=2 #579
+2025/06/10-13:21:39.614 bacd Delete type=2 #582
+2025/06/10-13:21:39.614 bacd Delete type=2 #563
+2025/06/10-13:21:39.614 bacd Delete type=2 #568

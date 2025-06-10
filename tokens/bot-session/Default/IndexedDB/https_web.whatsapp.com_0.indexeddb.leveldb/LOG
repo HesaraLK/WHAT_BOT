@@ -1,0 +1,32 @@
+2025/06/10-13:22:06.457 bcb1 Reusing MANIFEST /workspaces/WHAT_BOT/tokens/bot-session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/06/10-13:22:06.457 bcb1 Recovering log #584
+2025/06/10-13:22:06.471 bcb1 Reusing old log /workspaces/WHAT_BOT/tokens/bot-session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/000584.log 
+2025/06/10-13:22:08.211 bcb5 Level-0 table #600: started
+2025/06/10-13:22:08.229 bcb5 Level-0 table #600: 357800 bytes OK
+2025/06/10-13:22:08.233 bcb5 Delete type=0 #584
+2025/06/10-13:22:08.233 bcb6 Manual compaction at level-0 from '\x00A\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00B\x00\x00\x00' @ 0 : 0; will stop at '\x00A\x00\x00\x05' @ 2281341 : 1
+2025/06/10-13:22:08.233 bcb6 Compacting 1@0 + 1@1 files
+2025/06/10-13:22:08.250 bcb6 Generated table #601@0: 9083 keys, 172382 bytes
+2025/06/10-13:22:08.251 bcb6 Generated table #602@0: 72 keys, 1547 bytes
+2025/06/10-13:22:08.252 bcb6 Compacted 1@0 + 1@1 files => 173929 bytes
+2025/06/10-13:22:08.252 bcb6 compacted to: files[ 0 2 12 0 0 0 0 ]
+2025/06/10-13:22:08.253 bcb6 Delete type=2 #600
+2025/06/10-13:22:08.253 bcb1 Manual compaction at level-0 from '\x00A\x00\x00\x05' @ 2281341 : 1 .. '\x00B\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/06/10-13:22:09.935 bcb1 Compacting 1@1 + 6@2 files
+2025/06/10-13:22:10.023 bcb1 Generated table #603@1: 48101 keys, 2225397 bytes
+2025/06/10-13:22:10.141 bcb1 Generated table #604@1: 34001 keys, 2198255 bytes
+2025/06/10-13:22:10.180 bcb1 Generated table #605@1: 1969 keys, 2139913 bytes
+2025/06/10-13:22:10.223 bcb1 Generated table #606@1: 3381 keys, 2159933 bytes
+2025/06/10-13:22:10.294 bcb1 Generated table #607@1: 24400 keys, 2225739 bytes
+2025/06/10-13:22:10.388 bcb1 Generated table #608@1: 30809 keys, 2231354 bytes
+2025/06/10-13:22:10.391 bcb1 Generated table #609@1: 124 keys, 16422 bytes
+2025/06/10-13:22:10.391 bcb1 Compacted 1@1 + 6@2 files => 13197013 bytes
+2025/06/10-13:22:10.392 bcb1 compacted to: files[ 0 1 13 0 0 0 0 ]
+2025/06/10-13:22:10.393 bcb1 Delete type=2 #587
+2025/06/10-13:22:10.393 bcb1 Delete type=2 #593
+2025/06/10-13:22:10.393 bcb1 Delete type=2 #591
+2025/06/10-13:22:10.393 bcb1 Delete type=2 #592
+2025/06/10-13:22:10.393 bcb1 Delete type=2 #601
+2025/06/10-13:22:10.393 bcb1 Delete type=2 #589
+2025/06/10-13:22:10.393 bcb1 Delete type=2 #590
+2025/06/10-13:22:10.393 bcb1 Delete type=2 #588
