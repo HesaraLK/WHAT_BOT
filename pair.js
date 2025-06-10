@@ -14,57 +14,51 @@ const { upload } = require("./mega");
 
 const router = express.Router();
 
-function removeFile(FilePath) {
-  if (fs.existsSync(FilePath)) {
-    fs.rmSync(FilePath, { recursive: true, force: true });
-  }
-}
-
 const MAX_RETRIES = 5;
 
 router.get("/", async (req, res) => {
   const num = req.query.number;
+  if (!num) return res.status(400).send({ error: "Missing number param" });
+
   let retryCount = 0;
+  let qrSent = false;
 
   async function RobinPair() {
-    const { state, saveCreds } = await useMultiFileAuthState("./session");
-
     try {
+      const { state, saveCreds } = await useMultiFileAuthState("./session");
+
       const sock = makeWASocket({
         auth: {
           creds: state.creds,
-          keys: makeCacheableSignalKeyStore(
-            state.keys,
-            pino({ level: "fatal" }).child({ level: "fatal" })
-          ),
+          keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" })),
         },
         printQRInTerminal: false,
-        logger: pino({ level: "fatal" }).child({ level: "fatal" }),
+        logger: pino({ level: "fatal" }),
         browser: Browsers.macOS("Safari"),
       });
 
-      if (!sock.authState.creds.registered) {
-        await delay(1500);
-        const cleanNum = num.replace(/\D/g, "");
-        const code = await sock.requestPairingCode(cleanNum);
-
-        if (!res.headersSent) {
-          return res.send({ code });
-        }
-      }
-
+      // Save credentials when updated
       sock.ev.on("creds.update", saveCreds);
 
       sock.ev.on("connection.update", async (update) => {
-        const { connection, lastDisconnect } = update;
+        const { connection, qr, lastDisconnect } = update;
+
+        // Send QR code back to HTTP client for scanning
+        if (qr && !qrSent && !res.headersSent) {
+          qrSent = true;
+          return res.send({ qr });
+        }
 
         if (connection === "open") {
+          console.log("✅ Connected to WhatsApp");
+
           try {
-            await delay(10000);
+            await delay(2000);
 
             const authPath = "./session/";
             const userJid = jidNormalizedUser(sock.user.id);
 
+            // Generate random id for filename
             function randomMegaId(length = 6, numberLength = 4) {
               const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
               let id = "";
@@ -74,31 +68,29 @@ router.get("/", async (req, res) => {
               return id + numPart;
             }
 
+            // Upload creds.json to Mega
             const megaUrl = await upload(
               fs.createReadStream(authPath + "creds.json"),
               `${randomMegaId()}.json`
             );
             const stringSession = megaUrl.replace("https://mega.nz/file/", "");
 
-            const sid = `*HESARAYA [The powerful WA BOT]*\n\n👉 ${stringSession} 👈\n\n*This is your Session ID, copy this id and paste into config.js file*\n\n*You can ask any question using this link*\n\n*wa.me/message/WKGLBR2PCETWD1*\n\n*You can join my whatsapp group*\n\n*https://chat.whatsapp.com/GAOhr0qNK7KEvJwbenGivZ*`;
-            const warning = `🛑 *Do not share this code with anyone* 🛑`;
+            const sidMessage = `*HESARAYA [The powerful WA BOT]*\n\n👉 ${stringSession} 👈\n\n*This is your Session ID, copy this id and paste into config.js file*\n\n*You can ask any question using this link*\n\n*wa.me/message/WKGLBR2PCETWD1*\n\n*You can join my whatsapp group*\n\n*https://chat.whatsapp.com/GAOhr0qNK7KEvJwbenGivZ*`;
+            const warningMessage = `🛑 *Do not share this code with anyone* 🛑`;
 
             await sock.sendMessage(userJid, {
-              image: {
-                url: "https://i.pinimg.com/736x/d9/4f/60/d94f609478a2e0fc32af9d9e5ca129a4.jpg",
-              },
-              caption: sid,
+              image: { url: "https://i.pinimg.com/736x/d9/4f/60/d94f609478a2e0fc32af9d9e5ca129a4.jpg" },
+              caption: sidMessage,
             });
             await sock.sendMessage(userJid, { text: stringSession });
-            await sock.sendMessage(userJid, { text: warning });
+            await sock.sendMessage(userJid, { text: warningMessage });
           } catch (e) {
             console.error("Error sending messages:", e);
-            exec("pm2 restart prabath");
+            exec("pm2 restart prabath"); // You might want to adjust this name
           }
+        }
 
-          await delay(100);
-          await removeFile("./session");
-        } else if (
+        if (
           connection === "close" &&
           lastDisconnect &&
           lastDisconnect.error &&
@@ -108,18 +100,20 @@ router.get("/", async (req, res) => {
           if (retryCount <= MAX_RETRIES) {
             console.log(`Connection closed. Retry attempt ${retryCount}...`);
             await delay(10000);
-            return await RobinPair(); // IMPORTANT: Await recursive retry
+            await RobinPair();
           } else {
             console.error("Max retries reached. Stopping reconnection attempts.");
+            if (!res.headersSent) {
+              res.status(500).send({ error: "Max retries reached. Could not connect." });
+            }
           }
         }
       });
     } catch (err) {
       console.error("Error in RobinPair function:", err);
-      exec("pm2 restart Robin-md");
-      await removeFile("./session");
+      exec("pm2 restart Robin-md"); // Adjust as needed
       if (!res.headersSent) {
-        res.send({ code: "Service Unavailable" });
+        res.status(500).send({ error: "Service Unavailable" });
       }
     }
   }
@@ -128,9 +122,9 @@ router.get("/", async (req, res) => {
 });
 
 // Global error catcher
-process.on("uncaughtException", function (err) {
+process.on("uncaughtException", (err) => {
   console.error("Caught exception: ", err);
-  exec("pm2 restart Robin");
+  exec("pm2 restart Robin"); // Adjust as needed
 });
 
 module.exports = router;
