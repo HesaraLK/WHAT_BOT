@@ -11,7 +11,7 @@
   "dependencies": {
     "@whiskeysockets/baileys": "^6.10.5",
     "qrcode": "^1.5.1",
-    "awesome-phonenumber": "^7.7.0",
+    "awesome-phonenumber": "^7.5.0",
     "pino": "^9.15.0",
     "phone": "^3.1.59",
     "body-parser": "^1.20.2",
