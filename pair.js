@@ -18,12 +18,17 @@ function removeFile(FilePath) {
   fs.rmSync(FilePath, { recursive: true, force: true });
 }
 
+const MAX_RETRIES = 5;
+
 router.get("/", async (req, res) => {
   let num = req.query.number;
+  let retryCount = 0;
+
   async function RobinPair() {
     const { state, saveCreds } = await useMultiFileAuthState(`./session`);
+
     try {
-      let RobinPairWeb = makeWASocket({
+      let sock = makeWASocket({
         auth: {
           creds: state.creds,
           keys: makeCacheableSignalKeyStore(
@@ -36,95 +41,94 @@ router.get("/", async (req, res) => {
         browser: Browsers.macOS("Safari"),
       });
 
-      if (!RobinPairWeb.authState.creds.registered) {
+      if (!sock.authState.creds.registered) {
         await delay(1500);
-        num = num.replace(/[^0-9]/g, "");
-        const code = await RobinPairWeb.requestPairingCode(num);
+        const cleanNum = num.replace(/\D/g, "");
+        const code = await sock.requestPairingCode(cleanNum);
         if (!res.headersSent) {
-          await res.send({ code });
+          res.send({ code });
         }
       }
 
-      RobinPairWeb.ev.on("creds.update", saveCreds);
-      RobinPairWeb.ev.on("connection.update", async (s) => {
-        const { connection, lastDisconnect } = s;
+      sock.ev.on("creds.update", saveCreds);
+
+      sock.ev.on("connection.update", async (update) => {
+        const { connection, lastDisconnect } = update;
+
         if (connection === "open") {
           try {
             await delay(10000);
-            const sessionPrabath = fs.readFileSync("./session/creds.json");
 
-            const auth_path = "./session/";
-            const user_jid = jidNormalizedUser(RobinPairWeb.user.id);
+            const authPath = "./session/";
+            const userJid = jidNormalizedUser(sock.user.id);
 
             function randomMegaId(length = 6, numberLength = 4) {
-              const characters =
+              const chars =
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-              let result = "";
-              for (let i = 0; i < length; i++) {
-                result += characters.charAt(
-                  Math.floor(Math.random() * characters.length)
-                );
-              }
-              const number = Math.floor(
-                Math.random() * Math.pow(10, numberLength)
-              );
-              return `${result}${number}`;
+              let id = "";
+              for (let i = 0; i < length; i++)
+                id += chars.charAt(Math.floor(Math.random() * chars.length));
+              const numPart = Math.floor(Math.random() * 10 ** numberLength);
+              return id + numPart;
             }
 
-            const mega_url = await upload(
-              fs.createReadStream(auth_path + "creds.json"),
+            const megaUrl = await upload(
+              fs.createReadStream(authPath + "creds.json"),
               `${randomMegaId()}.json`
             );
+            const stringSession = megaUrl.replace("https://mega.nz/file/", "");
 
-            const string_session = mega_url.replace(
-              "https://mega.nz/file/",
-              ""
-            );
+            const sid = `*HESARAYA [The powerful WA BOT]*\n\n👉 ${stringSession} 👈\n\n*This is your Session ID, copy this id and paste into config.js file*\n\n*You can ask any question using this link*\n\n*wa.me/message/WKGLBR2PCETWD1*\n\n*You can join my whatsapp group*\n\n*https://chat.whatsapp.com/GAOhr0qNK7KEvJwbenGivZ*`;
+            const warning = `🛑 *Do not share this code with anyone* 🛑`;
 
-            const sid = `*HESARAYA [The powerful WA BOT]*\n\n👉 ${string_session} 👈\n\n*This is the your Session ID, copy this id and paste into config.js file*\n\n*You can ask any question using this link*\n\n*wa.me/message/WKGLBR2PCETWD1*\n\n*You can join my whatsapp group*\n\n*https://chat.whatsapp.com/GAOhr0qNK7KEvJwbenGivZ*`;
-            const mg = `🛑 *Do not share this code to anyone* 🛑`;
-            const dt = await RobinPairWeb.sendMessage(user_jid, {
+            await sock.sendMessage(userJid, {
               image: {
                 url: "https://i.pinimg.com/736x/d9/4f/60/d94f609478a2e0fc32af9d9e5ca129a4.jpg",
               },
               caption: sid,
             });
-            const msg = await RobinPairWeb.sendMessage(user_jid, {
-              text: string_session,
-            });
-            const msg1 = await RobinPairWeb.sendMessage(user_jid, { text: mg });
+            await sock.sendMessage(userJid, { text: stringSession });
+            await sock.sendMessage(userJid, { text: warning });
           } catch (e) {
+            console.error("Error sending messages:", e);
             exec("pm2 restart prabath");
           }
 
           await delay(100);
-          return await removeFile("./session");
-          process.exit(0);
+          await removeFile("./session");
+          // Do not exit process to keep server running
         } else if (
           connection === "close" &&
           lastDisconnect &&
           lastDisconnect.error &&
           lastDisconnect.error.output.statusCode !== 401
         ) {
-          await delay(10000);
-          RobinPair();
+          retryCount++;
+          if (retryCount <= MAX_RETRIES) {
+            console.log(`Connection closed. Retry attempt ${retryCount}...`);
+            await delay(10000);
+            RobinPair();
+          } else {
+            console.error("Max retries reached. Stopping reconnection attempts.");
+          }
         }
       });
     } catch (err) {
+      console.error("Error in RobinPair function:", err);
       exec("pm2 restart Robin-md");
-      console.log("service restarted");
-      RobinPair();
       await removeFile("./session");
       if (!res.headersSent) {
-        await res.send({ code: "Service Unavailable" });
+        res.send({ code: "Service Unavailable" });
       }
+      // Optional: You can retry here if needed
     }
   }
+
   return await RobinPair();
 });
 
 process.on("uncaughtException", function (err) {
-  console.log("Caught exception: " + err);
+  console.error("Caught exception: ", err);
   exec("pm2 restart Robin");
 });
 
