@@ -1,7 +1,6 @@
 const express = require("express");
 const fs = require("fs");
 const { exec } = require("child_process");
-let router = express.Router();
 const pino = require("pino");
 const {
   default: makeWASocket,
@@ -13,22 +12,25 @@ const {
 } = require("@whiskeysockets/baileys");
 const { upload } = require("./mega");
 
+const router = express.Router();
+
 function removeFile(FilePath) {
-  if (!fs.existsSync(FilePath)) return false;
-  fs.rmSync(FilePath, { recursive: true, force: true });
+  if (fs.existsSync(FilePath)) {
+    fs.rmSync(FilePath, { recursive: true, force: true });
+  }
 }
 
 const MAX_RETRIES = 5;
 
 router.get("/", async (req, res) => {
-  let num = req.query.number;
+  const num = req.query.number;
   let retryCount = 0;
 
   async function RobinPair() {
-    const { state, saveCreds } = await useMultiFileAuthState(`./session`);
+    const { state, saveCreds } = await useMultiFileAuthState("./session");
 
     try {
-      let sock = makeWASocket({
+      const sock = makeWASocket({
         auth: {
           creds: state.creds,
           keys: makeCacheableSignalKeyStore(
@@ -45,8 +47,9 @@ router.get("/", async (req, res) => {
         await delay(1500);
         const cleanNum = num.replace(/\D/g, "");
         const code = await sock.requestPairingCode(cleanNum);
+
         if (!res.headersSent) {
-          res.send({ code });
+          return res.send({ code });
         }
       }
 
@@ -63,8 +66,7 @@ router.get("/", async (req, res) => {
             const userJid = jidNormalizedUser(sock.user.id);
 
             function randomMegaId(length = 6, numberLength = 4) {
-              const chars =
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+              const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
               let id = "";
               for (let i = 0; i < length; i++)
                 id += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -96,18 +98,17 @@ router.get("/", async (req, res) => {
 
           await delay(100);
           await removeFile("./session");
-          // Do not exit process to keep server running
         } else if (
           connection === "close" &&
           lastDisconnect &&
           lastDisconnect.error &&
-          lastDisconnect.error.output.statusCode !== 401
+          lastDisconnect.error.output?.statusCode !== 401
         ) {
           retryCount++;
           if (retryCount <= MAX_RETRIES) {
             console.log(`Connection closed. Retry attempt ${retryCount}...`);
             await delay(10000);
-            RobinPair();
+            return await RobinPair(); // IMPORTANT: Await recursive retry
           } else {
             console.error("Max retries reached. Stopping reconnection attempts.");
           }
@@ -120,13 +121,13 @@ router.get("/", async (req, res) => {
       if (!res.headersSent) {
         res.send({ code: "Service Unavailable" });
       }
-      // Optional: You can retry here if needed
     }
   }
 
-  return await RobinPair();
+  await RobinPair();
 });
 
+// Global error catcher
 process.on("uncaughtException", function (err) {
   console.error("Caught exception: ", err);
   exec("pm2 restart Robin");
